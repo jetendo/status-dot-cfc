@@ -18,7 +18,7 @@
 		if(not structkeyexists(variables,'initRun')){
 			this.init();
 		}
-		if(structkeyexists(session, this.sessionKey) EQ false){
+		if(structkeyexists(session, this.sessionKey) EQ false or structkeyexists(session[this.sessionKey], 'statusStruct') EQ false){
 			session[this.sessionKey].statusStruct = {
 				count = 0,
 				id = 0,
