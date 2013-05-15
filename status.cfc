@@ -296,6 +296,12 @@
 		<cfargument name="struct" type="struct" required="yes">
 		<cfscript>
 		var statusStruct = this.getStruct(arguments.id);
+		var i=0;
+		var struct2={};
+		for(i IN arguments.struct){
+			struct2[i]=true;
+		}
+		this.setErrorFieldStruct(arguments.id, struct2);
 		StructAppend(statusStruct.errorStruct, arguments.struct);
 		</cfscript>
 	</cffunction>
