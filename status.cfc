@@ -1,14 +1,25 @@
+<!--- 
+status.cfc
+Version: 0.1.002
+
+Project Home Page: Coming soon
+Github Home Page: https://github.com/jetendo/status-dot-cfc
+
+Licensed under the MIT license
+http://www.opensource.org/licenses/mit-license.php
+Copyright (c) 2013 Far Beyond Code LLC.
+ --->
 <cfcomponent displayname="Status Message System" hint="" output="no">
 	<cfoutput>   
 	<cffunction name="init" access="public" output="no">
     	<cfargument name="config" type="struct" required="no" default="#{}#">
         <cfscript>
 		var root=expandPath("/");
-		this.config={
-			sessionKey:"zos"
+		var configDefault={
+			sessionKey:"zStatusStruct"
 		};
-		structappend(this, this.config, true);
-		structappend(this, arguments.config, true);
+		structappend(variables, configDefault, true);
+		structappend(variables, arguments.config, true);
 		variables.initRun=true;
         </cfscript>
     </cffunction>
@@ -18,14 +29,13 @@
 		if(not structkeyexists(variables,'initRun')){
 			this.init();
 		}
-		if(structkeyexists(session, this.sessionKey) EQ false or structkeyexists(session[this.sessionKey], 'statusStruct') EQ false){
-			session[this.sessionKey].statusStruct = {
+		if(not structkeyexists(session, variables.sessionKey)){
+			session[variables.sessionKey] = {
 				count = 0,
 				id = 0,
 				dataCount = 0
 			};
 		}
-		variables.statusStruct=session[this.sessionKey].statusStruct;
 		</cfscript>
     </cffunction>
 	
@@ -34,8 +44,7 @@
 		<cfargument name="id" type="string" required="yes">
         <cfscript>
 		var local={};
-		if(structkeyexists(variables, 'statusStruct') EQ false) this.initSession();
-		variables.statusStruct=variables.statusStruct;
+		if(not structkeyexists(variables, 'initRun') or not structkeyexists(session, variables.sessionKey)) variables.initSession();
 		</cfscript>
 		<cfif isNumeric(arguments.id) EQ false>
 			<cfif find("@",arguments.id) NEQ 0>
@@ -46,22 +55,22 @@
 			</cfif>
 		</cfif>
 		<cfscript>
-		if(structkeyexists(variables.statusStruct, arguments.id) and structkeyexists(variables.statusStruct[arguments.id], 'varStruct')){
-			return variables.statusStruct[arguments.id];
+		if(structkeyexists(session[variables.sessionKey], arguments.id)){// and structkeyexists(session[variables.sessionKey][arguments.id], 'varStruct')){
+			return session[variables.sessionKey][arguments.id];
 		
 		}else{
 			// force it to exist and then return it
-			variables.statusStruct[arguments.id]={
+			session[variables.sessionKey][arguments.id]={
 				arrMessages = ArrayNew(1),
 				arrErrors = ArrayNew(1),
 				errorStruct = StructNew(),
 				varStruct = StructNew(),
 				errorFieldStruct = StructNew()
 			};
-			if(structkeyexists(variables.statusStruct,'count') EQ false or arguments.id GT variables.statusStruct.count){
-				variables.statusStruct.count = arguments.id;
+			if(structkeyexists(session[variables.sessionKey],'count') EQ false or arguments.id GT session[variables.sessionKey].count){
+				session[variables.sessionKey].count = arguments.id;
 			}
-			return variables.statusStruct[arguments.id];
+			return session[variables.sessionKey][arguments.id];
 		}
 		</cfscript>
 	</cffunction>
@@ -69,13 +78,13 @@
 	<!--- statusCom.getNewId(); --->
 	<cffunction name="getNewId" access="public" returntype="any" output="false" hint="Create new id">
 		<cfscript>
-		if(structkeyexists(variables, 'statusStruct') EQ false) this.initSession();
-		if(isnumeric(variables.statusStruct.count) EQ false){
-			variables.statusStruct.count=0;
+		if(not structkeyexists(variables, 'initRun') or not structkeyexists(session, variables.sessionKey)) variables.initSession();
+		if(isnumeric(session[variables.sessionKey].count) EQ false){
+			session[variables.sessionKey].count=0;
 		}
-		variables.statusStruct.id = variables.statusStruct.count+1;
-		variables.statusStruct.count = variables.statusStruct.id;
-		return variables.statusStruct.id;
+		session[variables.sessionKey].id = session[variables.sessionKey].count+1;
+		session[variables.sessionKey].count = session[variables.sessionKey].id;
+		return session[variables.sessionKey].id;
 		</cfscript>
 	</cffunction>
     
@@ -84,8 +93,8 @@
 	<cffunction name="deleteId" access="public" returntype="any" output="false" hint="Delete status id">
 		<cfargument name="id" type="numeric" required="yes">
 		<cfscript>
-		if(structkeyexists(session, this.sessionKey) and structkeyexists(variables.statusStruct, arguments.id)){
-			structdelete(variables.statusStruct, arguments.id);
+		if(structkeyexists(session, variables.sessionKey) and structkeyexists(session[variables.sessionKey], arguments.id)){
+			structdelete(session[variables.sessionKey], arguments.id);
 		}
 		</cfscript>
 	</cffunction>
@@ -93,7 +102,7 @@
 	<!--- statusCom.deleteSessionData(); --->
 	<cffunction name="deleteSessionData" access="public" returntype="any" output="false" hint="Delete status id">
 		<cfscript>
-		structdelete(session, this.sessionKey);
+		structdelete(session, variables.sessionKey);
 		structdelete(variables, 'statusStruct');
 		</cfscript>
 	</cffunction>
@@ -123,7 +132,7 @@
         <cfscript>
 		var local=structnew();
 		var statusStruct=0;
-		if(structkeyexists(variables, 'statusStruct') EQ false) this.initSession();
+		if(not structkeyexists(variables, 'initRun') or not structkeyexists(session, variables.sessionKey)) variables.initSession();
 		</cfscript>
 		<cfif isNumeric(arguments.id) EQ false>
 			<cfif find("@",arguments.id) NEQ 0>
@@ -140,7 +149,7 @@
 		<cfscript>
 		statusStruct = this.getStruct(arguments.id);
 		if(arguments.status NEQ false){
-			variables.statusStruct.dataCount++;
+			session[variables.sessionKey].dataCount++;
 			if(arguments.error){
 				local.exists=false;
 				for(local.i=1;local.i LTE arraylen(statusStruct.arrErrors);local.i++){
@@ -165,18 +174,22 @@
 				}
 			}
 		}
+		/*
 		if(structkeyexists(statusStruct,'varStruct') EQ false){
-			variables.statusStruct[arguments.id].arrMessages = ArrayNew(1);
-			variables.statusStruct[arguments.id].arrErrors = ArrayNew(1);
-			variables.statusStruct[arguments.id].errorStruct = StructNew();
-			variables.statusStruct[arguments.id].varStruct = StructNew();
-			variables.statusStruct[arguments.id].errorFieldStruct = StructNew();
+			session[variables.sessionKey][arguments.id]={
+				arrMessages = ArrayNew(1),
+				arrErrors = ArrayNew(1),
+				errorStruct = StructNew(),
+				varStruct = StructNew(),
+				errorFieldStruct = StructNew()
+			};
 		}
-		if(structkeyexists(variables.statusStruct,'dataStruct') EQ false){
-			variables.statusStruct.dataStruct=0;
+		*/
+		if(structkeyexists(session[variables.sessionKey],'dataStruct') EQ false){
+			session[variables.sessionKey].dataStruct=0;
 		}
 		if(isStruct(arguments.varStruct)){
-			variables.statusStruct.dataCount++;
+			session[variables.sessionKey].dataCount++;
 			StructAppend(statusStruct.varStruct, arguments.varStruct, true);
 		}
 		return arguments.id;
@@ -189,9 +202,9 @@
 		<cfargument name="fieldName" type="string" required="yes">
 		<cfargument name="defaultValue" type="any" required="no" default="">
 		<cfscript>
-		if(structkeyexists(variables, 'statusStruct') EQ false) this.initSession();
-		if(structkeyexists(session,'zos') and structkeyexists(variables.statusStruct,arguments.id) and structkeyexists(variables.statusStruct[arguments.id].varStruct, arguments.fieldName)){
-			return variables.statusStruct[arguments.id].varStruct[arguments.fieldName];
+		if(not structkeyexists(variables, 'initRun') or not structkeyexists(session, variables.sessionKey)) variables.initSession();
+		if(structkeyexists(session,'zos') and structkeyexists(session[variables.sessionKey],arguments.id) and structkeyexists(session[variables.sessionKey][arguments.id].varStruct, arguments.fieldName)){
+			return session[variables.sessionKey][arguments.id].varStruct[arguments.fieldName];
 		}else{
 			return arguments.defaultValue;
 		}
@@ -208,7 +221,7 @@
 		
 		<cfscript>
 		var statusStruct=0;
-		if(structkeyexists(variables, 'statusStruct') EQ false) this.initSession();
+		if(not structkeyexists(variables, 'initRun') or not structkeyexists(session, variables.sessionKey)) variables.initSession();
 		statusStruct = this.getStruct(arguments.id);
 		StructInsert(statusStruct.varStruct, arguments.fieldName, arguments.value, true);
 		</cfscript>
@@ -230,12 +243,12 @@
 		<cfscript>
 		var i = "";
 		var arrTemp = ArrayNew(1); 
-		if(structkeyexists(variables, 'statusStruct') EQ false) this.initSession();
-		if(structkeyexists(variables.statusStruct,arguments.id)){
-			arrTemp = duplicate(variables.statusStruct[arguments.id].arrErrors);
+		if(not structkeyexists(variables, 'initRun') or not structkeyexists(session, variables.sessionKey)) variables.initSession();
+		if(structkeyexists(session[variables.sessionKey],arguments.id)){
+			arrTemp = duplicate(session[variables.sessionKey][arguments.id].arrErrors);
 			
-			for(i in variables.statusStruct[arguments.id].errorStruct){
-				ArrayAppend(arrTemp, variables.statusStruct[arguments.id].errorStruct[i]);
+			for(i in session[variables.sessionKey][arguments.id].errorStruct){
+				ArrayAppend(arrTemp, session[variables.sessionKey][arguments.id].errorStruct[i]);
 			}		
 		}
 		return arrTemp;
@@ -266,7 +279,7 @@
 		<cfargument name="id" type="numeric" required="yes">
 		<cfargument name="fieldName" type="string" required="yes">
 		<cfscript>
-		if(structkeyexists(variables.statusStruct,arguments.id) and structkeyexists(variables.statusStruct[arguments.id].errorFieldStruct, arguments.fieldName)){
+		if(structkeyexists(session[variables.sessionKey],arguments.id) and structkeyexists(session[variables.sessionKey][arguments.id].errorFieldStruct, arguments.fieldName)){
 			return true;
 		}else{
 			return false;
