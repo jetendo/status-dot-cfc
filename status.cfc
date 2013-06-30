@@ -294,9 +294,9 @@ Copyright (c) 2013 Far Beyond Code LLC.
 		<cfscript>
 		var statusStruct = this.getStruct(arguments.id);
 		var i=0;
-		for(i in struct){
-			if(not struct[i]){
-				structdelete(struct, i);
+		for(i in arguments.struct){
+			if(not arguments.struct[i]){
+				structdelete(arguments.struct, i);
 			}
 		}
 		StructAppend(statusStruct.errorFieldStruct, arguments.struct);
