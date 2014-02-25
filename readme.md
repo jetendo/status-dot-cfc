@@ -3,7 +3,7 @@
 - Purpose: Provides session memory storage for temporary messages and data that must be sent between requests.
 - Version: 0.1.000
 - Language(s) used: ColdFusion Markup Language (CFML)
-- Project Home Page: https://www.jetendo.com/manual/view/current/2.3/status-dot-cfc.html
+- Project Home Page: https://www.jetendo.com/z/admin/manual/view/9.2.3/status-dot-cfc.html
 - GitHub Home Page: https://github.com/jetendo/status-dot-cfc
 - This component is part of Jetendo CMS, https://www.jetendo.com/, but is designed to function on its own.
 
