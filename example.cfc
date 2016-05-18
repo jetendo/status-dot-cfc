@@ -10,11 +10,11 @@
 		var temp=0;
 		var temp2=0;
 		writeoutput('<h1>status-dot-cfc examples</h1>');
-		writeoutput('<p>Note: To reduce memory usage, status.cfc doesn''t store data in session memory until it needs to.</p>');
+		writeoutput('<p>Note: To reduce memory usage, status.cfc doesn''t store data in request.zsession memory until it needs to.</p>');
 		
-		writeoutput('<h2>init status with a different key to storage the session data in.</h2>');
-		writeoutput('<pre>status.init({ sessionKey: "statusKey"});</pre>');
-		status.init({ sessionKey: "statusKey"});
+		writeoutput('<h2>init status with a different key to storage the request.zsession data in.</h2>');
+		writeoutput('<pre>status.init({ request.zsessionKey: "statusKey"});</pre>');
+		status.init({ request.zsessionKey: "statusKey"});
 		
 		writeoutput('<style type="text/css">pre{ background-color:##F9F9F9; padding:5px; border:1px solid ##CCC;} </style>');
 		
@@ -60,7 +60,7 @@ status.setStatus(zsid, "Error Message 2", false, true);</pre>');
 		status.setStatus(zsid, "Error Message 2", false, true);
 		writeoutput('<hr />');
 		
-		writeoutput('<h2>Set a status error message and store a structure in session memory.</h2>');
+		writeoutput('<h2>Set a status error message and store a structure in request.zsession memory.</h2>');
 		writeoutput('<pre>struct1.name="John";
 struct1.phone="123-555-1234";
 status.setStatus(zsid, "Error Message", struct1, true);</pre>');
@@ -170,7 +170,7 @@ status.display(zsid);</pre>");
 		writeoutput('<hr />');
 		
 		
-		writeoutput('<h2>Delete all status session data for the current user.</h2>');
+		writeoutput('<h2>Delete all status request.zsession data for the current user.</h2>');
 		writeoutput("<pre>status.deleteSessionData();</pre>");
 		status.deleteSessionData();
 		writeoutput('<hr />');
